@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class SUsers(BaseModel):
@@ -11,3 +11,10 @@ class SUsers(BaseModel):
     class Config:
         # Валидировалось и без этой строки, но всё же:
         from_attributes = True
+
+
+class SUserRegister(BaseModel):
+    """Валидация данных пользователя при регистрации"""
+
+    email: EmailStr
+    password: str

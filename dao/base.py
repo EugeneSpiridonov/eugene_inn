@@ -1,4 +1,5 @@
-from sqlalchemy import select, join
+from fastapi import HTTPException
+from sqlalchemy import insert, select, join
 from database import async_session_maker
 from bookings.models import Bookings
 from rooms.models import Rooms
@@ -10,10 +11,9 @@ class BaseDAO:
     model = None
 
     @classmethod
-    async def find_one_or_none(cls, id: int):
+    async def find_one_or_none(cls, **filter_by):
         async with async_session_maker() as session:
-            # .__table__.columns избавляет от лишней вложенности
-            query = select(cls.model.__table__.columns).filter_by(user_id=id)
+            query = select(cls.model).filter_by(**filter_by)
             result = await session.execute(query)
             return result.scalar_one_or_none()
 
@@ -41,3 +41,20 @@ class BaseDAO:
 
             result = await session.execute(query)
             return result.mappings().all()
+
+    # @classmethod
+    # async def add(cls, **data):
+    #     async with async_session_maker() as session:
+    #         query = insert(cls.model).values(**data).returning(cls.model.id)
+    #         await session.execute(query)
+    #         await session.commit()
+
+    @classmethod
+    async def add(cls, **data):
+        try:
+            async with async_session_maker.begin() as session:
+                query = insert(cls.model).values(**data).returning(cls.model.id)
+                await session.execute(query)
+        except Exception as e:
+            # Обработка ошибок и откат транзакции
+            return HTTPException(status_code=500)
