@@ -13,7 +13,7 @@ class SUsers(BaseModel):
         from_attributes = True
 
 
-class SUserRegister(BaseModel):
+class SUserAuth(BaseModel):
     """Валидация данных пользователя при регистрации"""
 
     email: EmailStr
