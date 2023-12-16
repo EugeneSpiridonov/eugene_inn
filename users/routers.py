@@ -15,5 +15,5 @@ async def get_users() -> list[SUsers]:
 
 
 @router.get("/{id}/bookings")
-async def get_users(id: int):
+async def get_users_bookings(id: int):
     return await UsersDAO.find_user_bookrooms(id)
