@@ -9,6 +9,7 @@ class CustomException(HTTPException):
         super().__init__(status_code=self.status_code, detail=self.detail)
 
 
+# Пользовательские исключения
 class UserAlreadyExistsException(CustomException):
     status_code = status.HTTP_409_CONFLICT
     detail = "Пользователь уже существует"
@@ -37,3 +38,9 @@ class NoTokenException(CustomException):
 class UserNotFoundException(CustomException):
     status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Пользователь не найден"
+
+
+# Исключения по бронированиям
+class RoomCannotbeBookedException(CustomException):
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Не осталось свободных номеров"
