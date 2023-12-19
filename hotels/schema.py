@@ -15,3 +15,7 @@ class SHotels(BaseModel):
     class Config:
         # Валидировалось и без этой строки, но всё же:
         from_attributes = True
+
+
+class SHotelsInfo(SHotels):
+    rooms_left: int

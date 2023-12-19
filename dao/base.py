@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy import insert, select, join
 from database import async_session_maker
 from bookings.models import Bookings
-from rooms.models import Rooms
+from hotels.rooms.models import Rooms
 
 
 class BaseDAO:

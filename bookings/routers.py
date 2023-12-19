@@ -1,5 +1,5 @@
 from datetime import date
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from exceptions import RoomCannotbeBookedException
 
 from users.dependencies import get_current_user
@@ -29,3 +29,8 @@ async def add_booking(
     booking = await BookingsDAO.add(user.id, room_id, date_from, date_to)
     if not booking:
         raise RoomCannotbeBookedException
+
+
+@router.delete("/{booking_id}")
+async def delete_booking(booking_id: int, user: Users = Depends(get_current_user)):
+    await BookingsDAO.delete_my_booking(booking_id=booking_id, user_id=user.id)

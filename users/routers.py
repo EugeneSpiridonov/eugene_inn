@@ -56,5 +56,5 @@ async def logout_user(response: Response):
 
 
 @auth_router.get("/me")
-async def read_users_me(current_user: Users = Depends(get_current_user)):
+async def get_my_info(current_user: Users = Depends(get_current_user)):
     return current_user
