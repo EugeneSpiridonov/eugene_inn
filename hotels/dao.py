@@ -1,6 +1,6 @@
 from datetime import date
 from sqlalchemy import select, func, and_, or_
-from database import async_session_maker, engine
+from database import async_session_maker
 from dao.base import BaseDAO
 from hotels.models import Hotels
 from hotels.rooms.models import Rooms

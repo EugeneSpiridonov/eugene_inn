@@ -1,3 +1,5 @@
+import asyncio
+from fastapi_cache.decorator import cache
 from datetime import date, timedelta, datetime
 from fastapi import APIRouter, Query
 
@@ -18,11 +20,13 @@ router = APIRouter(
 
 
 @router.get("", response_model=list[SHotelsInfo])
+@cache(expire=20)
 async def get_hotels_by_location_and_time(
     location: str = Query(..., description=f"Например, Алтай"),
     date_from: date = Query(..., description=f"Например, {datetime.now().date()}"),
     date_to: date = Query(..., description=f"Например, {datetime.now().date()}"),
 ):
+    # await asyncio.sleep(3)
     if date_from > date_to:
         raise TooLongBookingException
     if date_to - date_from > timedelta(days=30):

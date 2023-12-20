@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
@@ -23,19 +23,21 @@
 			{% endfor %}
 		</div>
 	</body>
-</html>
-<!-- <!DOCTYPE html>
+</html> -->
+<!DOCTYPE html>
 <html>
 	<head>
-		<title>Last Resort Search Machine</title>
+		<title>EUGENE INN</title>
 		<style>
 			header {
-				background-image: "{{ url_for('static', path='images/texture.jpg') }}";
+				background-image: url("{{ url_for('static', path='images/texture.jpg') }}");
 				background-repeat: repeat-x;
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
 				padding: 10px;
+				border-bottom: 1px solid #d3d3d3;
+				margin-bottom: 20px;
 			}
 
 			h1 {
@@ -108,7 +110,7 @@
 	</head>
 	<body>
 		<header>
-			<h1>Last Resort Search Machine</h1>
+			<h1>EUGENE INN</h1>
 			<nav>
 				<ul>
 					<li><a href="#">Личный кабинет</a></li>
@@ -134,4 +136,4 @@
 			{% endfor %}
 		</div>
 	</body>
-</html> -->
+</html>
