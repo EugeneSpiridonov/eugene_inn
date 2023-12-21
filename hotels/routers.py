@@ -20,7 +20,7 @@ router = APIRouter(
 
 
 @router.get("", response_model=list[SHotelsInfo])
-@cache(expire=20)
+@cache(expire=20)  # Кэшируем результат запроса в Redis
 async def get_hotels_by_location_and_time(
     location: str = Query(..., description=f"Например, Алтай"),
     date_from: date = Query(..., description=f"Например, {datetime.now().date()}"),

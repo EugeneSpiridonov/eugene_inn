@@ -3,6 +3,8 @@ import shutil
 
 from fastapi.responses import JSONResponse
 
+from tasks.tasks import process_pic
+
 router = APIRouter(
     prefix="/images",
     tags=["Загрузка картинок"],
@@ -12,8 +14,11 @@ router = APIRouter(
 @router.post("/hotels")
 async def add_hotel_image(name: int, file: UploadFile):
     try:
-        with open(f"static/images/{name}.webp", "wb+") as file_object:
+        im_path = f"static/images/{name}.webp"
+        with open(im_path, "wb+") as file_object:
             shutil.copyfileobj(file.file, file_object)
+        # Celery
+        process_pic.delay(im_path)
 
         # Вернуть успешный ответ с кодом 201
         return JSONResponse(

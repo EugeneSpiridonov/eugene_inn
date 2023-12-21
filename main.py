@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +14,7 @@ from hotels.routers import router as hotels_router
 from bookings.routers import router as bookings_router
 from pages.routers import router as router_pages
 from images.routers import router as image_router
+from config import settings
 
 app = FastAPI()
 
@@ -37,7 +39,7 @@ app.add_middleware(
 
 @app.on_event("startup")  # <-- данный декоратор прогоняет код перед запуском FastAPI
 def startup():
-    redis = aioredis.from_url("redis://localhost:6379")
+    redis = aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}")
     FastAPICache.init(RedisBackend(redis), prefix="cache")
 
 
@@ -55,3 +57,7 @@ app.include_router(image_router)
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, log_level="info")
