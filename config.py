@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
+    SMTP_USER: str
     SMTP_HOST: str
     SMTP_PORT: int
     SMTP_PASS: str

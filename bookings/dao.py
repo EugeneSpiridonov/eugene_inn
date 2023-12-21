@@ -71,7 +71,7 @@ class BookingsDAO(BaseDAO):
             rooms_left = await session.execute(get_rooms_left)
             rooms_left: int = rooms_left.scalar()
 
-            if rooms_left > 0:
+            if not rooms_left or rooms_left > 0:
                 get_price = select(Rooms.price).filter_by(id=room_id)
                 price = await session.execute(get_price)
                 price: int = price.scalar()
@@ -86,8 +86,8 @@ class BookingsDAO(BaseDAO):
                     )
                     .returning(Bookings)
                 )
-                await session.commit()
                 new_booking = await session.execute(add_booking)
+                await session.commit()
                 return new_booking.scalar()
             else:
                 return None
