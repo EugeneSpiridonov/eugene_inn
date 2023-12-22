@@ -7,6 +7,10 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
 from redis import asyncio as aioredis
+from sqladmin import Admin, ModelView
+
+from admin.auth import authentication_backend
+from admin.views import BookingsAdmin, HotelsAdmin, RoomsAdmin, UsersAdmin
 
 from users.routers import router as users_router, auth_router as user_auth_router
 from hotels.rooms.routers import router as rooms_router
@@ -14,9 +18,13 @@ from hotels.routers import router as hotels_router
 from bookings.routers import router as bookings_router
 from pages.routers import router as router_pages
 from images.routers import router as image_router
+from users.models import Users
 from config import settings
+from database import engine
+
 
 app = FastAPI()
+
 
 origins = [
     "http://localhost:3000",
@@ -59,5 +67,13 @@ def read_root():
     return {"Hello": "World"}
 
 
+admin = Admin(app, engine, authentication_backend=authentication_backend)
+
+admin.add_view(UsersAdmin)
+admin.add_view(HotelsAdmin)
+admin.add_view(RoomsAdmin)
+admin.add_view(BookingsAdmin)
+
+
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, log_level="info")
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, log_level="info", reload=True)
