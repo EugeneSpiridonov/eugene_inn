@@ -27,6 +27,7 @@ pillow = "^10.1.0"
 sqladmin = {extras = ["full"], version = "^0.16.0"}
 itsdangerous = "^2.1.2"
 pytest = "^7.4.3"
+httpx = "^0.26.0"
 
 
 [build-system]
