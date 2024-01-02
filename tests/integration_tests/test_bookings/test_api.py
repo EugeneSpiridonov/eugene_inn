@@ -2,6 +2,7 @@ import pytest
 from httpx import AsyncClient
 
 
+# TODO: Пофиксить ошибку валидации даты
 @pytest.mark.parametrize(
     "room_id,date_from,date_to,booked_rooms,status_code",
     [

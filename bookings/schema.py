@@ -1,34 +1,19 @@
 from datetime import date
-from typing import Optional
-
 from pydantic import BaseModel
 
 
 class SBookings(BaseModel):
+    """Валидация полей базы данных"""
+
     id: int
     room_id: int
     user_id: int
     date_from: date
     date_to: date
     price: int
-    total_cost: int
     total_days: int
+    total_cost: int
 
     class Config:
-        orm_mode = True
-
-
-class SBookingInfo(SBookings):
-    image_id: int
-    name: str
-    description: Optional[str]
-    services: list[str]
-
-    class Config:
-        orm_mode = True
-
-
-class SNewBooking(BaseModel):
-    room_id: int
-    date_from: date
-    date_to: date
+        # Валидировалось и без этой строки, но всё же:
+        from_attributes = True
