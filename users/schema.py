@@ -1,11 +1,11 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 
 
 class SUsers(BaseModel):
     """Валидация полей базы данных"""
 
     id: int
-    email: str
+    email: EmailStr
     hashed_password: str
 
     class Config:
@@ -18,3 +18,12 @@ class SUserAuth(BaseModel):
 
     email: EmailStr
     password: str
+
+    @validator("email")
+    def validate_email(cls, value):
+        # Проверка, что в строке нет кириллических символов
+        if any(
+            char.isalpha() and char >= "\u0400" and char <= "\u04FF" for char in value
+        ):
+            raise ValueError("Email не должен содержать кириллицу")
+        return value

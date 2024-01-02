@@ -2,10 +2,13 @@ import asyncio
 import json
 from datetime import datetime
 import pytest
+from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from sqlalchemy import insert
 from bookings.models import Bookings
 from config import settings
 from database import Base, async_session_maker, engine
+from main import app as fastapi_app
 from hotels.models import Hotels
 from hotels.rooms.models import Rooms
 from users.models import Users
@@ -23,7 +26,7 @@ async def prepare_database():
         await conn.run_sync(Base.metadata.create_all)
 
     def open_mock_json(model: str):
-        with open(f"app/tests/mock_{model}.json", encoding="utf-8") as file:
+        with open(f"tests/mock_{model}.json", encoding="utf-8") as file:
             return json.load(file)
 
     hotels = open_mock_json("hotels")
@@ -57,3 +60,18 @@ def event_loop(request):
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
+
+# Делаем клиента для тестирования с помощью httpx
+# scope="function" - отдельная сессия для каждой функции
+@pytest.fixture(scope="function")
+async def ac():
+    async with AsyncClient(app=fastapi_app, base_url="http://test") as ac:
+        yield ac
+
+
+# Сессию с SQLAlchemy можно передать как фикстуру, чтобы не писать постоянно async with async_session_maker()
+@pytest.fixture(scope="function")
+async def session():
+    async with async_session_maker() as session:
+        yield session
