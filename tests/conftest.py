@@ -62,16 +62,30 @@ def event_loop(request):
     loop.close()
 
 
-# Делаем клиента для тестирования с помощью httpx
-# scope="function" - отдельная сессия для каждой функции
 @pytest.fixture(scope="function")
 async def ac():
+    "Асинхронный клиент для тестирования эндпоинтов"
     async with AsyncClient(app=fastapi_app, base_url="http://test") as ac:
         yield ac
 
 
-# Сессию с SQLAlchemy можно передать как фикстуру, чтобы не писать постоянно async with async_session_maker()
-@pytest.fixture(scope="function")
-async def session():
-    async with async_session_maker() as session:
-        yield session
+@pytest.fixture(scope="session")
+async def authenticated_ac():
+    "Асинхронный аутентифицированный клиент для тестирования эндпоинтов"
+    async with AsyncClient(app=fastapi_app, base_url="http://test") as ac:
+        await ac.post(
+            "/auth/login",
+            json={
+                "email": "test@test.com",
+                "password": "test",
+            },
+        )
+        assert ac.cookies["booking_access_token"]
+        yield ac
+
+
+# Фикстура оказалась бесполезной
+# @pytest.fixture(scope="function")
+# async def session():
+#     async with async_session_maker() as session:
+#         yield session

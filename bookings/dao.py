@@ -1,118 +1,136 @@
 from datetime import date
-from sqlalchemy import delete, insert, select, func, and_, or_
-from database import async_session_maker, engine
+
+from sqlalchemy import and_, func, insert, or_, select
+from sqlalchemy.exc import SQLAlchemyError
+
+from bookings.models import Bookings
 from dao.base import BaseDAO
-from exceptions import NotFound, UserNotEnoughPermissions
-from .schema import SBookings
-from hotels.models import Hotels
+from database import async_session_maker
+from exceptions import RoomCannotbeBookedException
 from hotels.rooms.models import Rooms
-from .models import Bookings
 
 
 class BookingsDAO(BaseDAO):
     model = Bookings
 
     @classmethod
-    async def add(cls, user_id: int, room_id: int, date_from: date, date_to: date):
+    async def find_all_with_images(cls, user_id: int):
+        async with async_session_maker() as session:
+            query = (
+                select(
+                    # __table__.columns нужен для отсутствия вложенности в ответе Алхимии
+                    Bookings.__table__.columns,
+                    Rooms.__table__.columns,
+                )
+                .join(Rooms, Rooms.id == Bookings.room_id, isouter=True)
+                .where(Bookings.user_id == user_id)
+            )
+            result = await session.execute(query)
+            return result.mappings().all()
+
+    @classmethod
+    async def add(
+        cls,
+        user_id: int,
+        room_id: int,
+        date_from: date,
+        date_to: date,
+    ):
         """
         WITH booked_rooms AS (
-        SELECT * FROM bookings
-        WHERE room_id = 1 AND
-        (date_from >= '2023-05-15' AND date_from <= '2023-06-20') OR
-        (date_from <= '2023-05-15' AND date_from > '2023-05-15')
+            SELECT * FROM bookings
+            WHERE room_id = 1 AND
+                (date_from >= '2023-05-15' AND date_from <= '2023-06-20') OR
+                (date_from <= '2023-05-15' AND date_to > '2023-05-15')
         )
         SELECT rooms.quantity - COUNT(booked_rooms.room_id) FROM rooms
-        LEFT JOIN booked_rooms ON booked_rooms_room_id = rooms.id
+        LEFT JOIN booked_rooms ON booked_rooms.room_id = rooms.id
         WHERE rooms.id = 1
         GROUP BY rooms.quantity, booked_rooms.room_id
         """
-        async with async_session_maker() as session:
-            booked_rooms = (
-                select(Bookings).where(
-                    and_(
-                        Bookings.room_id == 1,
-                        or_(
-                            and_(
-                                Bookings.date_from >= date_from,
-                                Bookings.date_from <= date_to,
+        try:
+            async with async_session_maker() as session:
+                booked_rooms = (
+                    select(Bookings)
+                    .where(
+                        and_(
+                            Bookings.room_id == room_id,
+                            or_(
+                                and_(
+                                    Bookings.date_from >= date_from,
+                                    Bookings.date_from <= date_to,
+                                ),
+                                and_(
+                                    Bookings.date_from <= date_from,
+                                    Bookings.date_to > date_from,
+                                ),
                             ),
-                            and_(
-                                Bookings.date_from <= date_from,
-                                Bookings.date_to > date_from,
-                            ),
-                        ),
+                        )
                     )
+                    .cte("booked_rooms")
                 )
-            ).cte("booked_rooms")
 
-            get_rooms_left = (
-                select(
-                    (Rooms.quantity - func.count(booked_rooms.c.room_id)).label(
-                        "rooms_left"
+                """
+                SELECT rooms.quantity - COUNT(booked_rooms.room_id) FROM rooms
+                LEFT JOIN booked_rooms ON booked_rooms.room_id = rooms.id
+                WHERE rooms.id = 1
+                GROUP BY rooms.quantity, booked_rooms.room_id
+                """
+
+                get_rooms_left = (
+                    select(
+                        (Rooms.quantity - func.count(booked_rooms.c.room_id)).label(
+                            "rooms_left"
+                        )
                     )
-                )
-                .select_from(Rooms)
-                .join(booked_rooms, booked_rooms.c.room_id == Rooms.id, isouter=True)
-                .where(Rooms.id == room_id)
-                .group_by(Rooms.quantity, booked_rooms.c.room_id)
-            )
-
-            # Вывести этот запрос на экран
-            # print(get_rooms_left.compile(engine, compile_kwargs={"literal_binds": True}))
-
-            """
-            WITH booked_rooms AS
-            (SELECT bookings.id AS id, bookings.room_id AS room_id, bookings.user_id AS user_id, bookings.date_from AS date_from, bookings.date_to AS date_to, bookings.price AS price, bookings.total_days AS total_days, bookings.total_cost AS total_cost
-            FROM bookings WHERE bookings.room_id = 1 AND (bookings.date_from >= '2023-05-15' AND bookings.date_from <= '2023-06-20' OR bookings.date_from <= '2023-05-15' AND bookings.date_to > '2023-05-15'))
-            SELECT rooms.quantity - count(booked_rooms.room_id) AS rooms_left
-            FROM rooms LEFT JOIN booked_rooms ON booked_rooms.room_id = rooms.id
-            WHERE rooms.id = 1 GROUP BY rooms.quantity, booked_rooms.room_id
-            """
-            rooms_left = await session.execute(get_rooms_left)
-            rooms_left: int = rooms_left.scalar()
-
-            if not rooms_left or rooms_left > 0:
-                get_price = select(Rooms.price).filter_by(id=room_id)
-                price = await session.execute(get_price)
-                price: int = price.scalar()
-                add_booking = (
-                    insert(Bookings)
-                    .values(
-                        room_id=room_id,
-                        user_id=user_id,
-                        date_from=date_from,
-                        date_to=date_to,
-                        price=price,
+                    .select_from(Rooms)
+                    .join(
+                        booked_rooms, booked_rooms.c.room_id == Rooms.id, isouter=True
                     )
-                    .returning(Bookings)
+                    .where(Rooms.id == room_id)
+                    .group_by(Rooms.quantity, booked_rooms.c.room_id)
                 )
-                new_booking = await session.execute(add_booking)
-                await session.commit()
-                return new_booking.scalar()
-            else:
-                return None
 
-    @classmethod
-    async def delete_my_booking(cls, booking_id: int, user_id: int):
-        async with async_session_maker() as session:
-            get_user_id_by_booking_id = (
-                select(Bookings.user_id)
-                .select_from(Bookings)
-                .where(Bookings.id == booking_id)
-            )
+                rooms_left = await session.execute(get_rooms_left)
+                rooms_left: int = rooms_left.scalar()
 
-            user_id_by_booking_id = await session.execute(get_user_id_by_booking_id)
-            user_id_by_booking_id: int = user_id_by_booking_id.scalar()
+                if rooms_left > 0:
+                    get_price = select(Rooms.price).filter_by(id=room_id)
+                    price = await session.execute(get_price)
+                    price: int = price.scalar()
+                    add_booking = (
+                        insert(Bookings)
+                        .values(
+                            room_id=room_id,
+                            user_id=user_id,
+                            date_from=date_from,
+                            date_to=date_to,
+                            price=price,
+                        )
+                        .returning(
+                            Bookings.id,
+                            Bookings.user_id,
+                            Bookings.room_id,
+                            Bookings.date_from,
+                            Bookings.date_to,
+                        )
+                    )
 
-            if user_id_by_booking_id is None:
-                raise NotFound
-
-            if user_id_by_booking_id != user_id:
-                raise UserNotEnoughPermissions
-
-            delete_booking_by_id = delete(Bookings).where(Bookings.id == booking_id)
-
-            result = await session.execute(delete_booking_by_id)
-            await session.commit()
-
-            return result
+                    new_booking = await session.execute(add_booking)
+                    await session.commit()
+                    return new_booking.mappings().one()
+                else:
+                    raise RoomCannotbeBookedException
+        except RoomCannotbeBookedException:
+            raise RoomCannotbeBookedException
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Database Exc: Cannot add booking"
+            elif isinstance(e, Exception):
+                msg = "Unknown Exc: Cannot add booking"
+            extra = {
+                "user_id": user_id,
+                "room_id": room_id,
+                "date_from": date_from,
+                "date_to": date_to,
+            }
