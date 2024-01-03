@@ -1,12 +1,13 @@
 import asyncio
-from fastapi_cache.decorator import cache
-from datetime import date, timedelta, datetime
+from datetime import date, datetime, timedelta
+
 from fastapi import APIRouter, Query
+from fastapi_cache.decorator import cache
 
 from exceptions import BackToTheFutureException, NotFound, TooLongBookingException
-from .schema import SHotels, SHotelsInfo
 
 from .dao import HotelsDAO
+from .schema import SHotels, SHotelsInfo
 
 router = APIRouter(
     prefix="/hotels",

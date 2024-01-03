@@ -1,8 +1,9 @@
 from datetime import date
+
 from fastapi import APIRouter
-from .schema import SRooms
 
 from .dao import RoomsDAO
+from .schema import SRooms
 
 router = APIRouter(
     prefix="/rooms",

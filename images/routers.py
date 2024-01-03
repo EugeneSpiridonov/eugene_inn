@@ -1,6 +1,6 @@
-from fastapi import APIRouter, UploadFile
 import shutil
 
+from fastapi import APIRouter, UploadFile
 from fastapi.responses import JSONResponse
 
 from tasks.tasks import process_pic

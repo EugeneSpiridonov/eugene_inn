@@ -1,5 +1,6 @@
-from sqlalchemy import Computed, Date, Column, ForeignKey, Integer
+from sqlalchemy import Column, Computed, Date, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+
 from database import Base
 
 

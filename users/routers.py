@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, Response
+
 from exceptions import IncorrectEmailOrPasswordException, UserAlreadyExistsException
 from users.auth import authentificate_user, create_access_token, get_password_hash
 from users.dao import UsersDAO
 from users.dependencies import get_current_user
 from users.models import Users
-from users.schema import SUsers, SUserAuth
+from users.schema import SUserAuth, SUsers
 
 router = APIRouter(
     prefix="/users",

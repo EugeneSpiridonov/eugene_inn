@@ -1,8 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi.staticfiles import StaticFiles
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
@@ -11,17 +10,16 @@ from sqladmin import Admin, ModelView
 
 from admin.auth import authentication_backend
 from admin.views import BookingsAdmin, HotelsAdmin, RoomsAdmin, UsersAdmin
-
-from users.routers import router as users_router, auth_router as user_auth_router
-from hotels.rooms.routers import router as rooms_router
-from hotels.routers import router as hotels_router
 from bookings.routers import router as bookings_router
-from pages.routers import router as router_pages
-from images.routers import router as image_router
-from users.models import Users
 from config import settings
 from database import engine
-
+from hotels.rooms.routers import router as rooms_router
+from hotels.routers import router as hotels_router
+from images.routers import router as image_router
+from pages.routers import router as router_pages
+from users.models import Users
+from users.routers import auth_router as user_auth_router
+from users.routers import router as users_router
 
 app = FastAPI()
 

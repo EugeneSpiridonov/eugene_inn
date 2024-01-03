@@ -1,4 +1,5 @@
 import pytest
+
 from users.dao import UsersDAO
 
 

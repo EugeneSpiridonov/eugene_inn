@@ -1,11 +1,12 @@
 from datetime import datetime
+
 from fastapi import Depends, Request
-from jose import jwt, JWTError
+from jose import JWTError, jwt
 
 from config import settings
 from exceptions import (
-    NoTokenException,
     NotAuthorizedException,
+    NoTokenException,
     TokenExpiredException,
     UserNotFoundException,
 )
