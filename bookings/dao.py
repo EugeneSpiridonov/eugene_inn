@@ -3,9 +3,8 @@ from datetime import date
 from sqlalchemy import and_, delete, func, insert, or_, select
 
 from dao.base import BaseDAO
-from database import async_session_maker, engine
+from database import async_session_maker
 from exceptions import NotFound, UserNotEnoughPermissions
-from hotels.models import Hotels
 from hotels.rooms.models import Rooms
 
 from .models import Bookings
