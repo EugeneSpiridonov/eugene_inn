@@ -1,5 +1,7 @@
 import time
 import uvicorn
+import sentry_sdk
+from config import settings
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -22,7 +24,23 @@ from logger import logger
 from users.routers import auth_router as user_auth_router
 from users.routers import router as users_router
 
+sentry_sdk.init(
+    dsn=settings.SENTRY_DSN,
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+)
+
 app = FastAPI()
+
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    exc = 2 + "str"
 
 
 origins = [
@@ -52,14 +70,14 @@ def startup():
 
 app.mount("/static", StaticFiles(directory="static"), "static")
 
-
-@app.middleware("http")
-async def time_logger(request: Request, call_next):
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-    logger.info("Request handling time", extra={"process time": round(process_time, 4)})
-    return response
+## Логгер времени исполнения запроса:
+# @app.middleware("http")
+# async def time_logger(request: Request, call_next):
+#     start_time = time.time()
+#     response = await call_next(request)
+#     process_time = time.time() - start_time
+#     logger.info("Request handling time", extra={"process time": round(process_time, 4)})
+#     return response
 
 
 app.include_router(user_auth_router)
