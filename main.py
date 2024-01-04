@@ -1,5 +1,6 @@
+import time
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi_cache import FastAPICache
@@ -17,7 +18,7 @@ from hotels.rooms.routers import router as rooms_router
 from hotels.routers import router as hotels_router
 from images.routers import router as image_router
 from pages.routers import router as router_pages
-from users.models import Users
+from logger import logger
 from users.routers import auth_router as user_auth_router
 from users.routers import router as users_router
 
@@ -50,6 +51,16 @@ def startup():
 
 
 app.mount("/static", StaticFiles(directory="static"), "static")
+
+
+@app.middleware("http")
+async def time_logger(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    logger.info("Request handling time", extra={"process time": round(process_time, 4)})
+    return response
+
 
 app.include_router(user_auth_router)
 app.include_router(users_router)
