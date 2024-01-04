@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
+from fastapi_versioning import VersionedFastAPI
 from redis import asyncio as aioredis
 from sqladmin import Admin, ModelView
 
@@ -38,9 +39,9 @@ sentry_sdk.init(
 app = FastAPI()
 
 
-@app.get("/sentry-debug")
-async def trigger_error():
-    exc = 2 + "str"
+# @app.get("/sentry-debug")
+# async def trigger_error():
+#     exc = 2 + "str"
 
 
 origins = [
@@ -68,7 +69,12 @@ def startup():
     FastAPICache.init(RedisBackend(redis), prefix="cache")
 
 
-app.mount("/static", StaticFiles(directory="static"), "static")
+# Подключение версионирования
+app = VersionedFastAPI(
+    app,
+    version_format="{major}",
+    prefix_format="/api/v{major}",
+)
 
 ## Логгер времени исполнения запроса:
 # @app.middleware("http")
@@ -100,6 +106,9 @@ admin.add_view(UsersAdmin)
 admin.add_view(HotelsAdmin)
 admin.add_view(RoomsAdmin)
 admin.add_view(BookingsAdmin)
+
+
+app.mount("/static", StaticFiles(directory="static"), "static")
 
 
 if __name__ == "__main__":

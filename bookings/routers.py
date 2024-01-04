@@ -1,6 +1,7 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends
+from fastapi_versioning import version
 from pydantic import ValidationError, parse_obj_as
 
 from exceptions import RoomCannotbeBookedException
@@ -18,11 +19,13 @@ router = APIRouter(
 
 
 @router.get("")
+@version(1)
 async def get_bookings(user: Users = Depends(get_current_user)) -> list[SBookings]:
     return await BookingsDAO.find_all(user_id=user.id)
 
 
 @router.post("", status_code=201, response_model=SBookings)
+@version(1)
 async def add_booking(
     # background_tasks: BackgroundTasks,
     room_id: int,
@@ -45,5 +48,6 @@ async def add_booking(
 
 
 @router.delete("/{booking_id}")
+@version(1)
 async def delete_booking(booking_id: int, user: Users = Depends(get_current_user)):
     await BookingsDAO.delete_my_booking(booking_id=booking_id, user_id=user.id)
