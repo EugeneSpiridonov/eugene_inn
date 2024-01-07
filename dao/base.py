@@ -1,9 +1,10 @@
 from fastapi import HTTPException
 from sqlalchemy import insert, join, select
-
+from sqlalchemy.exc import SQLAlchemyError
 from bookings.models import Bookings
 from database import async_session_maker
 from hotels.rooms.models import Rooms
+from logger import logger
 
 
 class BaseDAO:
@@ -66,3 +67,23 @@ class BaseDAO:
         except Exception as e:
             # Обработка ошибок и откат транзакции
             return HTTPException(status_code=500)
+
+    @classmethod
+    async def add_bulk(cls, *data):
+        # Для загрузки массива данных [{"id": 1}, {"id": 2}]
+        # мы должны обрабатывать его через позиционные аргументы *args.
+        try:
+            query = insert(cls.model).values(*data).returning(cls.model.id)
+            async with async_session_maker() as session:
+                result = await session.execute(query)
+                await session.commit()
+                return result.mappings().first()
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Database Exc"
+            elif isinstance(e, Exception):
+                msg = "Unknown Exc"
+            msg += ": Cannot bulk insert data into table"
+
+            logger.error(msg, extra={"table": cls.model.__tablename__}, exc_info=True)
+            return None

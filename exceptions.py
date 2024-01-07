@@ -65,3 +65,13 @@ class NotFound(CustomException):
 class UserNotEnoughPermissions(CustomException):
     status_code = status.HTTP_403_FORBIDDEN
     detail = "Not enough permissions"
+
+
+class CannotAddDataToDatabase(CustomException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    detail = "Не удалось добавить запись"
+
+
+class CannotProcessCSV(CustomException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    detail = "Не удалось обработать CSV файл"
