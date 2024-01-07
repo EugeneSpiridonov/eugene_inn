@@ -9,6 +9,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
 from fastapi_versioning import VersionedFastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 from redis import asyncio as aioredis
 from sqladmin import Admin, ModelView
 
@@ -75,6 +76,14 @@ app = VersionedFastAPI(
     version_format="{major}",
     prefix_format="/api/v{major}",
 )
+
+
+instrumentator = Instrumentator(
+    should_group_status_codes=False,
+    excluded_handlers=[".*admin.*", "/metrics"],
+)
+
+Instrumentator().instrument(app).expose(app)
 
 ## Логгер времени исполнения запроса:
 # @app.middleware("http")
