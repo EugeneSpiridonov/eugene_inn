@@ -18,6 +18,7 @@ from admin.views import BookingsAdmin, HotelsAdmin, RoomsAdmin, UsersAdmin
 from bookings.routers import router as bookings_router
 from config import settings
 from database import engine
+from importer.router import router as import_router
 from hotels.rooms.routers import router as rooms_router
 from hotels.routers import router as hotels_router
 from images.routers import router as image_router
@@ -102,6 +103,7 @@ app.include_router(hotels_router)
 app.include_router(bookings_router)
 app.include_router(router_pages)
 app.include_router(image_router)
+app.include_router(import_router)
 
 
 @app.get("/")
