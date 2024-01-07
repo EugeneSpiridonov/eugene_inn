@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from os.path import abspath, dirname
 
 from alembic import context
-from rooms.models import Rooms
+from hotels.rooms.models import Rooms
 from sqlalchemy import engine_from_config, pool
 
 from bookings.models import Bookings
