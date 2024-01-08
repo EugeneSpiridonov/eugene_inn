@@ -15,3 +15,10 @@ class Users(Base):
 
     def __str__(self) -> str:
         return f"Пользователь {self.email}"
+
+
+class TestCls(Base):
+    __tablename__ = "test"
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    test = Column(String, nullable=True)
