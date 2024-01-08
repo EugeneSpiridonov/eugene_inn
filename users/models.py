@@ -10,16 +10,8 @@ class Users(Base):
     id = Column(Integer, primary_key=True, nullable=False)
     email = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
-    meow = Column(String, nullable=True)
 
     booking = relationship("Bookings", back_populates="user")
 
     def __str__(self) -> str:
         return f"Пользователь {self.email}"
-
-
-class TestCls(Base):
-    __tablename__ = "test"
-
-    id = Column(Integer, primary_key=True, nullable=False)
-    test = Column(String, nullable=True)
